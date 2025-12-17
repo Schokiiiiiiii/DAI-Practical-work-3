@@ -23,7 +23,7 @@ _Astronomical Objects_
 
 ### Create a new user
 
-- `POST /users`
+- `POST /user`
 
 Create a new user.
 
@@ -51,7 +51,7 @@ JSON objects with the following properties:
 
 ### Get all users
 
-- `GET /users`
+- `GET /user`
 
 Get all the stored users
 
@@ -74,6 +74,8 @@ JSON array, each has the following properties :
 - `200`: (OK) -- All the users have been retrieved
 
 ### Get one user
+
+`GET /user/{username}`
 
 Get a specific user with their username
 
@@ -127,7 +129,7 @@ Response body contains a JSON object with the following properties:
 
 ### Delete a user
 
-- `DELETE /users/{username}`
+- `DELETE /user/{username}`
 
 Delete a user by its username
 
@@ -148,7 +150,7 @@ Empty response body
 
 ### Create an Astronomical Objects
 
-- `POST /objects`
+- `POST /object`
 
 Create an astronomical object
 
@@ -162,7 +164,7 @@ The request body must contain a JSON object with the following properties:
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
-- `username`: The username of the user that created the object
+- `created_by`: The username of the user that created the object
 
 #### Response
 
@@ -172,7 +174,7 @@ The request body must contain a JSON object with the following properties:
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
-- `username`: The username of the user that created the object
+- `created_by`: The username of the user that created the object
 
 #### Status codes
 
@@ -183,7 +185,7 @@ The request body must contain a JSON object with the following properties:
 
 ### Get all the stored Astronomical Objects
 
-`GET /objects`
+`GET /object`
 
 #### Request
 
@@ -199,7 +201,7 @@ A JSON array with each JSON object having the following properties:
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
-- `username`: The username of the user that created the object
+- `created_by`: The username of the user that created the object
 
 #### Status codes
 
@@ -207,7 +209,7 @@ A JSON array with each JSON object having the following properties:
 
 ### Get Astronomical Objects (filtered)
 
-`GET /objects/{attribute}/{pattern}`
+`GET /object/{attribute}/{pattern}`
 
 #### Request
 
@@ -226,7 +228,7 @@ Array of JSON objects with each containing the following attributes:
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
-- `username`: The username of the user that created the object
+- `created_by`: The username of the user that created the object
 
 #### Status codes
 
@@ -235,7 +237,7 @@ Array of JSON objects with each containing the following attributes:
 
 ### Update an Astronomical Objects
 
-`PUT /objects/{name}`
+`PUT /object/{name}`
 
 #### Request
 
@@ -250,7 +252,7 @@ The request body contains a JSON object with the following properties:
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
-- `username`: The username of the user that created the object
+- `created_by`: The username of the user that created the object
 
 #### Response
 
@@ -262,7 +264,7 @@ Body contains a JSON object with the following properties
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
-- `username`: The username of the user that created the object
+- `created_by`: The username of the user that created the object
 
 #### Status codes
 
@@ -272,7 +274,7 @@ Body contains a JSON object with the following properties
 
 ### Delete Astronomical Objects
 
-`DELETE /objects/{name}` 
+`DELETE /object/{name}` 
 
 Delete a user by its name
 
