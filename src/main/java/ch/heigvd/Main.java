@@ -1,17 +1,41 @@
 package ch.heigvd;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+// CONTROLLERS
+import ch.heigvd.object.ObjectController;
+import ch.heigvd.user.UserController;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+// JAVALIN
+import io.javalin.Javalin;
+
+public class Main {
+
+    public static final int PORT = 8080;
+
+    public static void main(String[] args) {
+
+        // create app
+        Javalin app = Javalin.create();
+
+        // Database
+        // TODO add database structures
+
+        // Controllers
+        UserController userController = new UserController();
+        ObjectController objectController = new ObjectController();
+
+        // User routes
+        app.post("/user", userController::create);
+        app.get("/user", userController::getAll);
+        app.get("/user/{username}", userController::getOne);
+        app.patch("/user/{username}", userController::update); // can be patch or put to chose
+        app.delete("/user/{username}", userController::delete);
+
+        // Object routes
+        app.post("/object", objectController::create);
+        app.get("/object/{id}", objectController::get);
+        app.patch("/object/{id}", objectController::update);
+        app.delete("/object/{id}", objectController::delete);
+
+        app.start(PORT);
     }
 }
