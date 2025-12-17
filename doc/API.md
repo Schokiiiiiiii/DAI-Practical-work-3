@@ -148,7 +148,7 @@ Empty response body
 
 ### Create an Astronomical Objects
 
-- `POST /object`
+- `POST /objects`
 
 Create an astronomical object
 
@@ -156,12 +156,13 @@ Create an astronomical object
 
 The request body must contain a JSON object with the following properties:
 
-- `name`: Name of the object
+- `name`: Name of the object (Unique)
 - `type`: The type of the object (star, planet, satellite, black_hole, ...)$
 - `diameter`: Diameter of the object (Km)
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
+- `username`: The username of the user that created the object
 
 #### Response
 
@@ -171,31 +172,119 @@ The request body must contain a JSON object with the following properties:
 - `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
+- `username`: The username of the user that created the object
 
 #### Status codes
 
 - `201`: (Created) -- The object was successfully created
 - `400`: (Bad Request) -- Request body invalid
+- `404`: (Not found) -- The specified username does not exist
 - `409`: (Conflict) -- Object already exists
 
-### Get Astronomical Objects
+### Get all the stored Astronomical Objects
 
-`GET /`
-
-#### Request
-#### Response
-#### Status codes
-
-### Astronomical Objects
+`GET /objects`
 
 #### Request
+
+Request path is sufficient
+
 #### Response
+
+A JSON array with each JSON object having the following properties:
+
+- `name`: Name of the object
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `diameter`: Diameter of the object (Km)
+- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `escape_velocity`: Minimum speed required to leave orbit (Km/s)
+- `surface_temperature`: Mean temperature (K)
+- `username`: The username of the user that created the object
+
 #### Status codes
 
-### Astronomical Objects
+- `200`: (OK) -- Objects successfully retrieved
+
+### Get Astronomical Objects (filtered)
+
+`GET /objects/{attribute}/{pattern}`
 
 #### Request
+
+Attribute and search pattern defined in the request path
+
+- Attribute: An Astronomical object attribute (name, type, diameter, ...)
+- Pattern: regex
+
 #### Response
+
+Array of JSON objects with each containing the following attributes:
+
+- `name`: Name of the object
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `diameter`: Diameter of the object (Km)
+- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `escape_velocity`: Minimum speed required to leave orbit (Km/s)
+- `surface_temperature`: Mean temperature (K)
+- `username`: The username of the user that created the object
+
 #### Status codes
 
+- `200`: (OK) -- Objects successfully returned
+- `404`: (Not Found) -- Attribute or pattern invalid
 
+### Update an Astronomical Objects
+
+`PUT /objects/{name}`
+
+#### Request
+
+The request path must contain the name of the object
+
+The name can not be modified as it is the unique identifier of the object
+
+The request body contains a JSON object with the following properties:
+
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `diameter`: Diameter of the object (Km)
+- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `escape_velocity`: Minimum speed required to leave orbit (Km/s)
+- `surface_temperature`: Mean temperature (K)
+- `username`: The username of the user that created the object
+
+#### Response
+
+Body contains a JSON object with the following properties
+
+- `name`: Name of the object
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `diameter`: Diameter of the object (Km)
+- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `escape_velocity`: Minimum speed required to leave orbit (Km/s)
+- `surface_temperature`: Mean temperature (K)
+- `username`: The username of the user that created the object
+
+#### Status codes
+
+- `200`: (OK) -- The object has been successfully updated.
+- `400`: (Bad Request) -- The request body is invalid.
+- `404`: (Not Found) -- The object does not exist.
+
+### Delete Astronomical Objects
+
+`DELETE /objects/{name}` 
+
+Delete a user by its name
+
+#### Request
+
+The request path contains the object's name
+
+#### Response
+
+Empty response body
+
+#### Status codes
+
+- `204`: (No Content) -- The object has been successfully deleted
+- `404`: (Not Found) -- The specified Astronomical Object does not exist
