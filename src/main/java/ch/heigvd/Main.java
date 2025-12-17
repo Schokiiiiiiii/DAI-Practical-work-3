@@ -27,13 +27,13 @@ public class Main {
         app.post("/user", userController::create);
         app.get("/user", userController::getAll);
         app.get("/user/{username}", userController::getOne);
-        app.patch("/user/{username}", userController::update); // can be patch or put to chose
+        app.put("/user/{username}", userController::update); // can be patch or put to chose
         app.delete("/user/{username}", userController::delete);
 
         // Object routes
         app.post("/object", objectController::create);
         app.get("/object/{id}", objectController::get);
-        app.patch("/object/{id}", objectController::update);
+        app.put("/object/{id}", objectController::update);
         app.delete("/object/{id}", objectController::delete);
 
         app.start(PORT);
