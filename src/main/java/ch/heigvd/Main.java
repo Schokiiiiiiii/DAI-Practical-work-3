@@ -32,7 +32,8 @@ public class Main {
 
         // Object routes
         app.post("/object", objectController::create);
-        app.get("/object/{id}", objectController::get);
+        app.get("/object", objectController::getAll);
+        app.get("/object/{id}", objectController::getOne);
         app.put("/object/{id}", objectController::update);
         app.delete("/object/{id}", objectController::delete);
 

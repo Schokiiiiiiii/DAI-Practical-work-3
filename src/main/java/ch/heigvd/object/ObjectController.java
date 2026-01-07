@@ -10,7 +10,12 @@ public class ObjectController {
 
     }
 
-    public void get(Context ctx) {
+    public void getAll(Context ctx) {
+
+
+    }
+
+    public void getOne(Context ctx) {
 
 
     }
