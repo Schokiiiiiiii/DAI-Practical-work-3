@@ -33,7 +33,7 @@ JSON objects with the following properties:
 
 - `username`: The username of the user
 - `email`: The email address of the user
-- `age`: The age of the user
+- `date_of_birth`: date of birth of the user
 
 #### Response
 
@@ -41,7 +41,7 @@ JSON objects with the following properties:
 
 - `username`: The username of the user (unique)
 - `email`: The email address of the user (unique)
-- `age`: The age of the user
+- `date_of_birth`: date of birth of the user
 
 #### Status codes
 
@@ -67,7 +67,7 @@ JSON array, each has the following properties :
 
 - `username`: The username of the user
 - `email`: The email address of the user
-- `age`: The age of the user
+- `date_of_birth`: date of birth of the user
 
 #### Status codes
 
@@ -91,7 +91,7 @@ JSON object with the following properties :
 
 - `username`: The username of the user
 - `email`: The email address of the user
-- `age`: The age of the user
+- `dob`: date of birth of the user
 
 #### Status codes
 
@@ -111,7 +111,7 @@ Request path contains the username of the user
 Request body contains a JSON object with the following properties
 
 - `email`: The email address of the user
-- `age`: The age of the user
+- `date_of_birth`: date of birth of the user
 
 #### Response
 
@@ -119,7 +119,7 @@ Response body contains a JSON object with the following properties:
 
 - `username`: The username of the user
 - `email`: The email address of the user
-- `age`: The age of the user
+- `date_of_birth`: date of birth of the user
 
 #### Status codes
 
