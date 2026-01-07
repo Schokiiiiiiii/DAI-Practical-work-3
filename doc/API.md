@@ -1,4 +1,4 @@
-~~# Cosmic Latte API
+# Cosmic Latte API
 
 The Cosmic Latte API allows to manage Astronomical Bodies and users that create them. It uses the HTTP protocol and the JSON format.
 
@@ -14,7 +14,7 @@ _Users_
 
 _Astronomical Objects_
 
-- Create an astronomical objects
+- Create an astronomical object
 - Get astronomical objects (with many filtering options)
 - Modify an astronomical object
 - Delete an astronomical object
@@ -81,7 +81,7 @@ Get a specific user with their username
 
 #### Request
 
-Query parameter:
+Path parameter:
 
 - `username`: Username of the user
 
@@ -93,7 +93,7 @@ JSON object with the following properties :
 - `email`: The email address of the user
 - `age`: The age of the user
 
-#### Status Codes
+#### Status codes
 
 - `200`: (OK) -- User has been retrieved
 - `404`: (Not Found) -- User does not exist
@@ -124,7 +124,7 @@ Response body contains a JSON object with the following properties:
 #### Status codes
 
 - `200`: (OK) -- User successfully updated
-- `400`: (Bad Request) - Request body invalid
+- `400`: (Bad Request) -- Request body invalid
 - `404`: (Not Found) -- The specified user does not exist
 
 ### Delete a user
@@ -148,7 +148,7 @@ Empty response body
 
 ## Astronomical Objects endpoints
 
-### Create an Astronomical Objects
+### Create an Astronomical Object
 
 - `POST /object`
 
@@ -159,9 +159,9 @@ Create an astronomical object
 The request body must contain a JSON object with the following properties:
 
 - `name`: Name of the object (Unique)
-- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)
 - `diameter`: Diameter of the object (Km)
-- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
 - `created_by`: The username of the user that created the object
@@ -169,9 +169,9 @@ The request body must contain a JSON object with the following properties:
 #### Response
 
 - `name`: Name of the object
-- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)
 - `diameter`: Diameter of the object (Km)
-- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
 - `created_by`: The username of the user that created the object
@@ -196,9 +196,9 @@ Request path is sufficient
 A JSON array with each JSON object having the following properties:
 
 - `name`: Name of the object
-- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)
 - `diameter`: Diameter of the object (Km)
-- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
 - `created_by`: The username of the user that created the object
@@ -209,23 +209,23 @@ A JSON array with each JSON object having the following properties:
 
 ### Get Astronomical Objects (filtered)
 
-`GET /object/{attribute}/{pattern}`
+`GET /object?{attributeName}={value}`
 
 #### Request
 
 Attribute and search pattern defined in the request path
 
-- Attribute: An Astronomical object attribute (name, type, diameter, ...)
-- Pattern: regex
+- attributeName: An Astronomical object attribute (name, type, diameter, ...)
+- value: regex
 
 #### Response
 
 Array of JSON objects with each containing the following attributes:
 
 - `name`: Name of the object
-- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)
 - `diameter`: Diameter of the object (Km)
-- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
 - `created_by`: The username of the user that created the object
@@ -235,7 +235,7 @@ Array of JSON objects with each containing the following attributes:
 - `200`: (OK) -- Objects successfully returned
 - `404`: (Not Found) -- Attribute or pattern invalid
 
-### Update an Astronomical Objects
+### Update an Astronomical Object
 
 `PUT /object/{name}`
 
@@ -247,9 +247,9 @@ The name can not be modified as it is the unique identifier of the object
 
 The request body contains a JSON object with the following properties:
 
-- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)
 - `diameter`: Diameter of the object (Km)
-- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
 - `created_by`: The username of the user that created the object
@@ -259,9 +259,9 @@ The request body contains a JSON object with the following properties:
 Body contains a JSON object with the following properties
 
 - `name`: Name of the object
-- `type`: The type of the object (star, planet, satellite, black_hole, ...)$
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)
 - `diameter`: Diameter of the object (Km)
-- `Mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
+- `mass`: The mass of the object ($M_{\oplus}$ - Earth Mass)
 - `escape_velocity`: Minimum speed required to leave orbit (Km/s)
 - `surface_temperature`: Mean temperature (K)
 - `created_by`: The username of the user that created the object
@@ -274,9 +274,9 @@ Body contains a JSON object with the following properties
 
 ### Delete Astronomical Objects
 
-`DELETE /object/{name}` 
+`DELETE /object/{name}`
 
-Delete a user by its name
+Delete an astronomical object by its name
 
 #### Request
 
