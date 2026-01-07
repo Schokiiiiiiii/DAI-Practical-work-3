@@ -183,18 +183,34 @@ The request body must contain a JSON object with the following properties:
 - `404`: (Not found) -- The specified username does not exist
 - `409`: (Conflict) -- Object already exists
 
-### Get all the stored Astronomical Objects
+### Get the stored astronomical object with filters
 
-`GET /object`
+`GET /object?{operation}={value}`
 
 #### Request
 
-Request path is sufficient
+The request query can contain the following parameters for the `operation` key :
+
+- `type`: The type of the object (star, planet, satellite, black_hole, ...)
+- `diameter`: Diameter of the object (Km) (equals)
+  - `diameter_ge` : diameter greater or equal than
+  - `diameter_le` : diameter less or equal than
+- `mass`: The mass of the object ($M_{\oplus}$ - Earth Mass) (equals)
+  - `mass_ge` : mass greater or equal than
+  - `mass_le` : mass less or equal than
+- `escape_velocity`: Minimum speed required to leave orbit (Km/s) (equals)
+  - `escape_velocity_ge` : escape_velocity greater or equal than
+  - `escape_velocity_le` : escape_velocity less or equal than
+- `surface_temperature`: Mean temperature (K) (equals)
+  - `surface_temperature_ge` : surface_temperature greater or equal than
+  - `surface_temperature_le` : surface_temperature less or equal than
+- `created_by`: The username of the user that created the object
 
 #### Response
 
 A JSON array with each JSON object having the following properties:
 
+- `id` : The id of the object
 - `name`: Name of the object
 - `type`: The type of the object (star, planet, satellite, black_hole, ...)
 - `diameter`: Diameter of the object (Km)
@@ -207,20 +223,19 @@ A JSON array with each JSON object having the following properties:
 
 - `200`: (OK) -- Objects successfully retrieved
 
-### Get Astronomical Objects (filtered)
+### Get a single object based on the id
 
-`GET /object?{attributeName}={value}`
+`GET /object/{id}`
 
 #### Request
 
-Attribute and search pattern defined in the request path
+The URL must contain the id of an existing object
 
-- attributeName: An Astronomical object attribute (name, type, diameter, ...)
-- value: regex
+- `id` : The id of the object
 
 #### Response
 
-Array of JSON objects with each containing the following attributes:
+A JSON file with the following properties:
 
 - `name`: Name of the object
 - `type`: The type of the object (star, planet, satellite, black_hole, ...)
@@ -232,8 +247,7 @@ Array of JSON objects with each containing the following attributes:
 
 #### Status codes
 
-- `200`: (OK) -- Objects successfully returned
-- `404`: (Not Found) -- Attribute or pattern invalid
+- `200`: (OK) -- Object successfully retrieved
 
 ### Update an Astronomical Object
 
