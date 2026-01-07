@@ -29,7 +29,7 @@ Create a new user.
 
 #### Request
 
-JSON objects with the following properties:
+JSON object with the following properties:
 
 - `username`: The username of the user
 - `email`: The email address of the user
@@ -37,7 +37,7 @@ JSON objects with the following properties:
 
 #### Response
 
-JSON objects with the following properties:
+JSON object with the following properties:
 
 - `username`: The username of the user (unique)
 - `email`: The email address of the user (unique)
