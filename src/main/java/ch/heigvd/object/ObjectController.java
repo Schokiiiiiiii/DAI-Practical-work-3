@@ -3,7 +3,11 @@ package ch.heigvd.object;
 // JAVALIN
 import io.javalin.http.*;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class ObjectController {
+
+    private final AtomicInteger next_id = new AtomicInteger(1);
 
     public void create(Context ctx) {
         // TODO implement

@@ -1,11 +1,16 @@
 package ch.heigvd;
 
 // CONTROLLERS
+import ch.heigvd.object.Object;
 import ch.heigvd.object.ObjectController;
+import ch.heigvd.user.User;
 import ch.heigvd.user.UserController;
 
 // JAVALIN
 import io.javalin.Javalin;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class Main {
 
@@ -13,11 +18,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // create app
+        // Create app
         Javalin app = Javalin.create();
 
         // Database
-        // TODO add database structures
+        ConcurrentMap<String, User> users = new ConcurrentHashMap<>();
+        ConcurrentMap<Integer, Object> objects = new ConcurrentHashMap<>();
 
         // Controllers
         UserController userController = new UserController();
