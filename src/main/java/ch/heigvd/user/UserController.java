@@ -11,6 +11,7 @@ public class UserController {
 
     public UserController(ConcurrentMap<String, User> users) {
         this.users = users;
+        // TODO add objects and DELETE/MODIFY name when necessary
     }
 
     public void create(Context ctx) {
@@ -38,7 +39,6 @@ public class UserController {
     }
 
     public void getAll(Context ctx) {
-        // TODO implement filters
         ctx.json(users);
     }
 
