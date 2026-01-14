@@ -26,7 +26,7 @@ public class Main {
         ConcurrentMap<Integer, Object> objects = new ConcurrentHashMap<>();
 
         // Controllers
-        UserController userController = new UserController();
+        UserController userController = new UserController(users);
         ObjectController objectController = new ObjectController();
 
         // User routes
