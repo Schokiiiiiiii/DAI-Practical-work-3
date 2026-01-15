@@ -26,7 +26,7 @@ public class Main {
         ConcurrentMap<Integer, AstronomicalObject> objects = new ConcurrentHashMap<>();
 
         // Controllers
-        UserController userController = new UserController();
+        UserController userController = new UserController(users);
         AstronomicalObjectController objectController = new AstronomicalObjectController(objects);
 
         // User routes
