@@ -1,8 +1,8 @@
 package ch.heigvd;
 
 // CONTROLLERS
-import ch.heigvd.object.Object;
-import ch.heigvd.object.ObjectController;
+import ch.heigvd.object.AstronomicalObject;
+import ch.heigvd.object.AstronomicalObjectController;
 import ch.heigvd.user.User;
 import ch.heigvd.user.UserController;
 
@@ -23,11 +23,11 @@ public class Main {
 
         // Database
         ConcurrentMap<String, User> users = new ConcurrentHashMap<>();
-        ConcurrentMap<Integer, Object> objects = new ConcurrentHashMap<>();
+        ConcurrentMap<Integer, AstronomicalObject> objects = new ConcurrentHashMap<>();
 
         // Controllers
         UserController userController = new UserController(users);
-        ObjectController objectController = new ObjectController();
+        AstronomicalObjectController objectController = new AstronomicalObjectController(objects);
 
         // User routes
         app.post("/user", userController::create);
