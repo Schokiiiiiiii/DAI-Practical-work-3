@@ -4,7 +4,7 @@ networks:
 
 services:
   cosmic:
-    image: ${IMAGE_NAME}:${TRAEFIK_IMAGE_VERSION}
+    image: ${IMAGE_NAME}:${IMAGE_VERSION}
     restart: unless-stopped
     networks: [cosmic_network]
     labels:
