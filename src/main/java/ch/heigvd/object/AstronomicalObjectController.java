@@ -1,5 +1,6 @@
 package ch.heigvd.object;
 
+import ch.heigvd.user.User;
 import io.javalin.http.*;
 
 import java.util.ArrayList;
@@ -10,23 +11,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AstronomicalObjectController {
 
     private final ConcurrentMap<Integer, AstronomicalObject> objects;
+    private final ConcurrentMap<String, User> users;
     private final AtomicInteger next_id = new AtomicInteger(1);
 
-    public AstronomicalObjectController(ConcurrentMap<Integer, AstronomicalObject> objects) {
+    public AstronomicalObjectController(ConcurrentMap<Integer, AstronomicalObject> objects,
+                                        ConcurrentMap<String, User> users) {
         this.objects = objects;
+        this.users = users;
     }
 
     public void create(Context ctx) {
-        AstronomicalObject payload =
-                ctx.bodyValidator(AstronomicalObject.class)
-                        .check(obj -> obj.name() != null, "Missing object name")
-                        .check(obj -> obj.type() != null, "Missing object type")
-                        .check(obj -> obj.diameter() != 0, "Missing object diameter")
-                        .check(obj -> obj.mass() != 0.d, "Missing object's mass")
-                        .check(obj -> obj.escape_velocity() != 0.d, "Missing object's escape velocity")
-                        .check(obj -> obj.surface_temperature() != 0.d, "Missing object's surface temperature")
-                        .check(obj -> obj.created_by() != null, "Missing object's creator")
-                        .get();
+
+        AstronomicalObject payload = validateBody(ctx);
+
+        boolean foundUser = false;
+        for (User user : users.values()) {
+            if (user.username().equals(payload.created_by())) {
+                foundUser = true;
+                break;
+            }
+        }
+
+        if (!foundUser)
+            throw new NotFoundResponse();
 
         for (AstronomicalObject object : objects.values()) {
             if (payload.name().equalsIgnoreCase(object.name())) {
@@ -120,16 +127,7 @@ public class AstronomicalObjectController {
         AstronomicalObject existing = objects.get(id);
         if (existing == null) throw new NotFoundResponse();
 
-        AstronomicalObject payload =
-                ctx.bodyValidator(AstronomicalObject.class)
-                        .check(obj -> obj.name() != null, "Missing object name")
-                        .check(obj -> obj.type() != null, "Missing object type")
-                        .check(obj -> obj.diameter() != 0, "Missing object diameter")
-                        .check(obj -> obj.mass() != 0.d, "Missing object's mass")
-                        .check(obj -> obj.escape_velocity() != 0.d, "Missing object's escape velocity")
-                        .check(obj -> obj.surface_temperature() != 0.d, "Missing object's surface temperature")
-                        .check(obj -> obj.created_by() != null, "Missing object's creator")
-                        .get();
+        AstronomicalObject payload = validateBody(ctx);
 
         // Conflict only if another object (different id) has the same name
         for (AstronomicalObject obj : objects.values()) {
@@ -159,5 +157,17 @@ public class AstronomicalObjectController {
         if (removed == null) throw new NotFoundResponse();
 
         ctx.status(HttpStatus.NO_CONTENT);
+    }
+
+    private AstronomicalObject validateBody(Context ctx) {
+        return ctx.bodyValidator(AstronomicalObject.class)
+                .check(obj -> obj.name() != null, "Missing object name")
+                .check(obj -> obj.type() != null, "Missing object type")
+                .check(obj -> obj.diameter() != 0, "Missing object diameter")
+                .check(obj -> obj.mass() != 0.d, "Missing object's mass")
+                .check(obj -> obj.escape_velocity() != 0.d, "Missing object's escape velocity")
+                .check(obj -> obj.surface_temperature() != 0.d, "Missing object's surface temperature")
+                .check(obj -> obj.created_by() != null, "Missing object's creator")
+                .get();
     }
 }
