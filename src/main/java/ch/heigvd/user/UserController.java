@@ -1,6 +1,7 @@
 package ch.heigvd.user;
 
 // JAVALIN
+import ch.heigvd.object.AstronomicalObject;
 import io.javalin.http.*;
 
 import java.time.LocalDateTime;
@@ -10,29 +11,33 @@ public class UserController {
 
     private final ConcurrentMap<String, User> users;
     private final ConcurrentMap<String, LocalDateTime> usersCache;
+    private final ConcurrentMap<Integer, AstronomicalObject> objects;
     private static final String ALL_USERS_KEY = "__ALL_USERS__";
 
-    public UserController(ConcurrentMap<String, User> users, ConcurrentMap<String, LocalDateTime> usersCache) {
-        this.users = users;
-        this.usersCache = usersCache;
+    public UserController(ConcurrentMap<String, User> users, ConcurrentMap<String, LocalDateTime> usersCache, ConcurrentMap<Integer, AstronomicalObject> objects) {
+          this.users = users;
+          this.usersCache = usersCache;
+          this.objects = objects;
+      }
     }
 
     public void create(Context ctx) {
 
+        // validate user
         User newUser = validateBody(ctx);
 
+        // look for any other similar names
         for (User user : users.values())
             if (newUser.username().equalsIgnoreCase(user.email()))
                 throw new ConflictResponse();
 
+        // create
         newUser = new User(
                 newUser.username(),
                 newUser.email(),
                 newUser.date_of_birth(),
                 newUser.diploma(),
-                newUser.biography(),
-                0,
-                0
+                newUser.biography()
         );
 
         users.put(newUser.username(), newUser);
@@ -122,23 +127,35 @@ public class UserController {
     }
 
     public void delete(Context ctx) {
-        String username = ctx.pathParamAsClass("username", String.class).get();
 
-        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+          // retrieve username from path parameter
+          String username = ctx.pathParamAsClass("username", String.class).get();
 
-        if (lastKnown != null && usersCache.containsKey(username)
-                && !usersCache.get(username).equals(lastKnown)) {
-            throw new PreconditionFailedResponse();
-        }
+          LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
 
-        if (!users.containsKey(username)) {
+          if (lastKnown != null && usersCache.containsKey(username)
+                  && !usersCache.get(username).equals(lastKnown)) {
+              throw new PreconditionFailedResponse();
+          }
+
+          // can't find user
+          if (!users.containsKey(username)) {
             throw new NotFoundResponse();
         }
 
+        // remove user on astronomical objects
+        for (AstronomicalObject object : objects.values()) {
+            if (object.created_by().equals(object.name())) {
+                object.setCreatedByToNull();
+            }
+        }
+
+        // remove user from database
         users.remove(username);
         usersCache.remove(username);
         usersCache.remove(ALL_USERS_KEY);
 
+        // send status
         ctx.status(HttpStatus.NO_CONTENT);
     }
 
