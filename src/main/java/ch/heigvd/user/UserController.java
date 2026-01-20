@@ -1,6 +1,7 @@
 package ch.heigvd.user;
 
 // JAVALIN
+import ch.heigvd.object.AstronomicalObject;
 import io.javalin.http.*;
 
 import java.util.concurrent.ConcurrentMap;
@@ -8,28 +9,30 @@ import java.util.concurrent.ConcurrentMap;
 public class UserController {
 
     private final ConcurrentMap<String, User> users;
+    private final ConcurrentMap<Integer, AstronomicalObject> objects;
 
-    public UserController(ConcurrentMap<String, User> users) {
+    public UserController(ConcurrentMap<String, User> users, ConcurrentMap<Integer, AstronomicalObject> objects) {
         this.users = users;
-        // TODO add objects and DELETE/MODIFY name when necessary
+        this.objects = objects;
     }
 
     public void create(Context ctx) {
 
+        // validate user
         User newUser = validateBody(ctx);
 
+        // look for any other similar names
         for (User user : users.values())
             if (newUser.username().equalsIgnoreCase(user.email()))
                 throw new ConflictResponse();
 
+        // create
         newUser = new User(
                 newUser.username(),
                 newUser.email(),
                 newUser.date_of_birth(),
                 newUser.diploma(),
-                newUser.biography(),
-                0,
-                0
+                newUser.biography()
         );
 
         users.put(newUser.username(), newUser);
@@ -78,14 +81,25 @@ public class UserController {
 
     public void delete(Context ctx) {
 
+        // retrieve username from path parameter
         String username = ctx.pathParamAsClass("username", String.class).get();
 
+        // can't find user
         if (!users.containsKey(username)) {
             throw new NotFoundResponse();
         }
 
+        // remove user on astronomical objects
+        for (AstronomicalObject object : objects.values()) {
+            if (object.created_by().equals(object.name())) {
+                object.setCreatedByToNull();
+            }
+        }
+
+        // remove user from database
         users.remove(username);
 
+        // send status
         ctx.status(HttpStatus.NO_CONTENT);
     }
 
