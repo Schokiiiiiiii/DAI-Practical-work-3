@@ -12,7 +12,8 @@ services:
       - traefik.enable=true
       - traefik.http.routers.cosmic.entrypoints=https
       - traefik.http.routers.cosmic.rule=Host(`${COSMIC_FULLY_QUALIFIED_DOMAIN_NAME}`)
-      - traefik.http.routers.cosmic.service=api@internal
+      - traefik.http.routers.cosmic.service=cosmic
+      - traefik.http.services.loadbalancer.server.port=8080
       # configure sticky session with cookie
       - traefik.http.services.cosmic.loadbalancer.sticky=true
       - traefik.http.services.cosmic.loadbalancer.sticky.cookie.name=coolest_cookie
