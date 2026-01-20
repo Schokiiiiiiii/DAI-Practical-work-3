@@ -3,15 +3,18 @@ package ch.heigvd.user;
 // JAVALIN
 import io.javalin.http.*;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentMap;
 
 public class UserController {
 
     private final ConcurrentMap<String, User> users;
+    private final ConcurrentMap<String, LocalDateTime> usersCache;
+    private static final String ALL_USERS_KEY = "__ALL_USERS__";
 
-    public UserController(ConcurrentMap<String, User> users) {
+    public UserController(ConcurrentMap<String, User> users, ConcurrentMap<String, LocalDateTime> usersCache) {
         this.users = users;
-        // TODO add objects and DELETE/MODIFY name when necessary
+        this.usersCache = usersCache;
     }
 
     public void create(Context ctx) {
@@ -34,17 +37,41 @@ public class UserController {
 
         users.put(newUser.username(), newUser);
 
+        LocalDateTime now = LocalDateTime.now();
+        usersCache.put(newUser.username(), now);
+        usersCache.remove(ALL_USERS_KEY);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.status(HttpStatus.CREATED);
         ctx.json(newUser);
     }
 
     public void getAll(Context ctx) {
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && usersCache.containsKey(ALL_USERS_KEY)
+                && usersCache.get(ALL_USERS_KEY).equals(lastKnown)) {
+            throw new NotModifiedResponse();
+        }
+
+        LocalDateTime now = usersCache.containsKey(ALL_USERS_KEY)
+                ? usersCache.get(ALL_USERS_KEY)
+                : LocalDateTime.now();
+        usersCache.putIfAbsent(ALL_USERS_KEY, now);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.json(users);
     }
 
     public void getOne(Context ctx) {
-
         String username = ctx.pathParamAsClass("username", String.class).get();
+
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && usersCache.containsKey(username)
+                && usersCache.get(username).equals(lastKnown)) {
+            throw new NotModifiedResponse();
+        }
 
         User user = users.get(username);
 
@@ -52,12 +79,24 @@ public class UserController {
             throw new NotFoundResponse();
         }
 
+        LocalDateTime now = usersCache.containsKey(username)
+                ? usersCache.get(username)
+                : LocalDateTime.now();
+        usersCache.putIfAbsent(username, now);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.json(user);
     }
 
     public void update(Context ctx) {
-
         String username = ctx.pathParamAsClass("username", String.class).get();
+
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && usersCache.containsKey(username)
+                && !usersCache.get(username).equals(lastKnown)) {
+            throw new PreconditionFailedResponse();
+        }
 
         if (!users.containsKey(username)) {
             throw new NotFoundResponse();
@@ -66,25 +105,39 @@ public class UserController {
         User updateUser = validateBody(ctx);
 
         for (User user : users.values()) {
-            if (updateUser.username().equalsIgnoreCase(user.username())) {
+            if (!user.username().equals(username)
+                    && updateUser.username().equalsIgnoreCase(user.username())) {
                 throw new ConflictResponse();
             }
         }
 
         users.put(username, updateUser);
 
+        LocalDateTime now = LocalDateTime.now();
+        usersCache.put(username, now);
+        usersCache.remove(ALL_USERS_KEY);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.json(updateUser);
     }
 
     public void delete(Context ctx) {
-
         String username = ctx.pathParamAsClass("username", String.class).get();
+
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && usersCache.containsKey(username)
+                && !usersCache.get(username).equals(lastKnown)) {
+            throw new PreconditionFailedResponse();
+        }
 
         if (!users.containsKey(username)) {
             throw new NotFoundResponse();
         }
 
         users.remove(username);
+        usersCache.remove(username);
+        usersCache.remove(ALL_USERS_KEY);
 
         ctx.status(HttpStatus.NO_CONTENT);
     }
