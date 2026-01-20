@@ -2,7 +2,6 @@ package ch.heigvd.object;
 
 import ch.heigvd.user.User;
 import io.javalin.http.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,226 +10,233 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class AstronomicalObjectController {
 
-    private final ConcurrentMap<Integer, AstronomicalObject> objects;
-    private final ConcurrentMap<Integer, LocalDateTime> objectsCache;
-    private final ConcurrentMap<String, User> users;
-    private final AtomicInteger next_id = new AtomicInteger(1);
-    private static final Integer ALL_OBJECTS_KEY = -1;
+  private final ConcurrentMap<Integer, AstronomicalObject> objects;
+  private final ConcurrentMap<Integer, LocalDateTime> objectsCache;
+  private final ConcurrentMap<String, User> users;
+  private final AtomicInteger next_id = new AtomicInteger(1);
+  private static final Integer ALL_OBJECTS_KEY = -1;
 
-    public AstronomicalObjectController(ConcurrentMap<Integer, AstronomicalObject> objects,
-                                        ConcurrentMap<Integer, LocalDateTime> objectsCache,
-                                        ConcurrentMap<String, User> users) {
-        this.objects = objects;
-        this.objectsCache = objectsCache;
-        this.users = users;
+  public AstronomicalObjectController(
+      ConcurrentMap<Integer, AstronomicalObject> objects,
+      ConcurrentMap<Integer, LocalDateTime> objectsCache,
+      ConcurrentMap<String, User> users) {
+    this.objects = objects;
+    this.objectsCache = objectsCache;
+    this.users = users;
+  }
+
+  public void create(Context ctx) {
+
+    AstronomicalObject payload = validateBody(ctx);
+
+    boolean foundUser = false;
+    for (User user : users.values()) {
+      if (user.username().equals(payload.created_by())) {
+        foundUser = true;
+        break;
+      }
     }
 
-    public void create(Context ctx) {
+    if (!foundUser) throw new NotFoundResponse();
 
-        AstronomicalObject payload = validateBody(ctx);
-
-        boolean foundUser = false;
-        for (User user : users.values()) {
-            if (user.username().equals(payload.created_by())) {
-                foundUser = true;
-                break;
-            }
-        }
-
-        if (!foundUser)
-            throw new NotFoundResponse();
-
-        for (AstronomicalObject object : objects.values()) {
-            if (payload.name().equalsIgnoreCase(object.name())) {
-                throw new ConflictResponse();
-            }
-        }
-
-        AstronomicalObject stored = new AstronomicalObject(
-                next_id.getAndIncrement(),
-                payload.name(),
-                payload.type(),
-                payload.diameter(),
-                payload.mass(),
-                payload.escape_velocity(),
-                payload.surface_temperature(),
-                payload.created_by()
-        );
-
-        objects.put(stored.id(), stored);
-
-        LocalDateTime now = LocalDateTime.now();
-        objectsCache.put(stored.id(), now);
-        objectsCache.remove(ALL_OBJECTS_KEY);
-
-        ctx.header("Last-Modified", now.toString());
-        ctx.status(HttpStatus.CREATED).json(stored);
+    for (AstronomicalObject object : objects.values()) {
+      if (payload.name().equalsIgnoreCase(object.name())) {
+        throw new ConflictResponse();
+      }
     }
 
-    public void getAll(Context ctx) {
-        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+    AstronomicalObject stored =
+        new AstronomicalObject(
+            next_id.getAndIncrement(),
+            payload.name(),
+            payload.type(),
+            payload.diameter(),
+            payload.mass(),
+            payload.escape_velocity(),
+            payload.surface_temperature(),
+            payload.created_by());
 
-        if (lastKnown != null && objectsCache.containsKey(ALL_OBJECTS_KEY)
-                && objectsCache.get(ALL_OBJECTS_KEY).equals(lastKnown)) {
-            throw new NotModifiedResponse();
-        }
+    objects.put(stored.id(), stored);
 
-        List<AstronomicalObject> result = new ArrayList<>();
+    LocalDateTime now = LocalDateTime.now();
+    objectsCache.put(stored.id(), now);
+    objectsCache.remove(ALL_OBJECTS_KEY);
 
-        Integer diameterGe = optInt(ctx, "diameter_ge");
-        Integer diameterLe = optInt(ctx, "diameter_le");
-        Double massGe = optDouble(ctx, "mass_ge");
-        Double massLe = optDouble(ctx, "mass_le");
-        Double escapeGe = optDouble(ctx, "escape_velocity_ge");
-        Double escapeLe = optDouble(ctx, "escape_velocity_le");
-        Double tempGe = optDouble(ctx, "surface_temperature_ge");
-        Double tempLe = optDouble(ctx, "surface_temperature_le");
+    ctx.header("Last-Modified", now.toString());
+    ctx.status(HttpStatus.CREATED).json(stored);
+  }
 
-        String type = ctx.queryParam("type");
-        String createdBy = ctx.queryParam("created_by");
+  public void getAll(Context ctx) {
+    LocalDateTime lastKnown =
+        ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
 
-        for (AstronomicalObject obj : objects.values()) {
-
-            if (type != null && !type.equalsIgnoreCase(obj.type())) continue;
-            if (createdBy != null && !createdBy.equals(obj.created_by())) continue;
-
-            if (diameterGe != null && obj.diameter() < diameterGe) continue;
-            if (diameterLe != null && obj.diameter() > diameterLe) continue;
-
-            if (massGe != null && obj.mass() < massGe) continue;
-            if (massLe != null && obj.mass() > massLe) continue;
-
-            if (escapeGe != null && obj.escape_velocity() < escapeGe) continue;
-            if (escapeLe != null && obj.escape_velocity() > escapeLe) continue;
-
-            if (tempGe != null && obj.surface_temperature() < tempGe) continue;
-            if (tempLe != null && obj.surface_temperature() > tempLe) continue;
-
-            result.add(obj);
-        }
-
-        LocalDateTime now = objectsCache.containsKey(ALL_OBJECTS_KEY)
-                ? objectsCache.get(ALL_OBJECTS_KEY)
-                : LocalDateTime.now();
-        objectsCache.putIfAbsent(ALL_OBJECTS_KEY, now);
-
-        ctx.header("Last-Modified", now.toString());
-        ctx.status(HttpStatus.OK).json(result);
+    if (lastKnown != null
+        && objectsCache.containsKey(ALL_OBJECTS_KEY)
+        && objectsCache.get(ALL_OBJECTS_KEY).equals(lastKnown)) {
+      throw new NotModifiedResponse();
     }
 
-    private static Integer optInt(Context ctx, String name) {
-        String raw = ctx.queryParam(name);
-        if (raw == null) return null;
-        try {
-            return Integer.valueOf(raw);
-        } catch (NumberFormatException e) {
-            throw new BadRequestResponse("Query param '" + name + "' must be an integer");
-        }
+    List<AstronomicalObject> result = new ArrayList<>();
+
+    Integer diameterGe = optInt(ctx, "diameter_ge");
+    Integer diameterLe = optInt(ctx, "diameter_le");
+    Double massGe = optDouble(ctx, "mass_ge");
+    Double massLe = optDouble(ctx, "mass_le");
+    Double escapeGe = optDouble(ctx, "escape_velocity_ge");
+    Double escapeLe = optDouble(ctx, "escape_velocity_le");
+    Double tempGe = optDouble(ctx, "surface_temperature_ge");
+    Double tempLe = optDouble(ctx, "surface_temperature_le");
+
+    String type = ctx.queryParam("type");
+    String createdBy = ctx.queryParam("created_by");
+
+    for (AstronomicalObject obj : objects.values()) {
+
+      if (type != null && !type.equalsIgnoreCase(obj.type())) continue;
+      if (createdBy != null && !createdBy.equals(obj.created_by())) continue;
+
+      if (diameterGe != null && obj.diameter() < diameterGe) continue;
+      if (diameterLe != null && obj.diameter() > diameterLe) continue;
+
+      if (massGe != null && obj.mass() < massGe) continue;
+      if (massLe != null && obj.mass() > massLe) continue;
+
+      if (escapeGe != null && obj.escape_velocity() < escapeGe) continue;
+      if (escapeLe != null && obj.escape_velocity() > escapeLe) continue;
+
+      if (tempGe != null && obj.surface_temperature() < tempGe) continue;
+      if (tempLe != null && obj.surface_temperature() > tempLe) continue;
+
+      result.add(obj);
     }
 
-    private static Double optDouble(Context ctx, String name) {
-        String raw = ctx.queryParam(name);
-        if (raw == null) return null;
-        try {
-            return Double.valueOf(raw);
-        } catch (NumberFormatException e) {
-            throw new BadRequestResponse("Query param '" + name + "' must be a number");
-        }
+    LocalDateTime now =
+        objectsCache.containsKey(ALL_OBJECTS_KEY)
+            ? objectsCache.get(ALL_OBJECTS_KEY)
+            : LocalDateTime.now();
+    objectsCache.putIfAbsent(ALL_OBJECTS_KEY, now);
+
+    ctx.header("Last-Modified", now.toString());
+    ctx.status(HttpStatus.OK).json(result);
+  }
+
+  private static Integer optInt(Context ctx, String name) {
+    String raw = ctx.queryParam(name);
+    if (raw == null) return null;
+    try {
+      return Integer.valueOf(raw);
+    } catch (NumberFormatException e) {
+      throw new BadRequestResponse("Query param '" + name + "' must be an integer");
+    }
+  }
+
+  private static Double optDouble(Context ctx, String name) {
+    String raw = ctx.queryParam(name);
+    if (raw == null) return null;
+    try {
+      return Double.valueOf(raw);
+    } catch (NumberFormatException e) {
+      throw new BadRequestResponse("Query param '" + name + "' must be a number");
+    }
+  }
+
+  public void getOne(Context ctx) {
+    Integer id = ctx.pathParamAsClass("id", Integer.class).get();
+
+    LocalDateTime lastKnown =
+        ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+
+    if (lastKnown != null
+        && objectsCache.containsKey(id)
+        && objectsCache.get(id).equals(lastKnown)) {
+      throw new NotModifiedResponse();
     }
 
-    public void getOne(Context ctx) {
-        Integer id = ctx.pathParamAsClass("id", Integer.class).get();
+    AstronomicalObject object = objects.get(id);
+    if (object == null) throw new NotFoundResponse();
 
-        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+    LocalDateTime now = objectsCache.containsKey(id) ? objectsCache.get(id) : LocalDateTime.now();
+    objectsCache.putIfAbsent(id, now);
 
-        if (lastKnown != null && objectsCache.containsKey(id)
-                && objectsCache.get(id).equals(lastKnown)) {
-            throw new NotModifiedResponse();
-        }
+    ctx.header("Last-Modified", now.toString());
+    ctx.status(HttpStatus.OK).json(object);
+  }
 
-        AstronomicalObject object = objects.get(id);
-        if (object == null) throw new NotFoundResponse();
+  public void update(Context ctx) {
+    Integer id = ctx.pathParamAsClass("id", Integer.class).get();
 
-        LocalDateTime now = objectsCache.containsKey(id)
-                ? objectsCache.get(id)
-                : LocalDateTime.now();
-        objectsCache.putIfAbsent(id, now);
+    LocalDateTime lastKnown =
+        ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
 
-        ctx.header("Last-Modified", now.toString());
-        ctx.status(HttpStatus.OK).json(object);
+    if (lastKnown != null
+        && objectsCache.containsKey(id)
+        && !objectsCache.get(id).equals(lastKnown)) {
+      throw new PreconditionFailedResponse();
     }
 
-    public void update(Context ctx) {
-        Integer id = ctx.pathParamAsClass("id", Integer.class).get();
+    AstronomicalObject existing = objects.get(id);
+    if (existing == null) throw new NotFoundResponse();
 
-        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+    AstronomicalObject payload = validateBody(ctx);
 
-        if (lastKnown != null && objectsCache.containsKey(id)
-                && !objectsCache.get(id).equals(lastKnown)) {
-            throw new PreconditionFailedResponse();
-        }
-
-        AstronomicalObject existing = objects.get(id);
-        if (existing == null) throw new NotFoundResponse();
-
-        AstronomicalObject payload = validateBody(ctx);
-
-        // Conflict only if another object (different id) has the same name
-        for (AstronomicalObject obj : objects.values()) {
-            if (!obj.id().equals(id) && payload.name().equalsIgnoreCase(obj.name())) {
-                throw new ConflictResponse();
-            }
-        }
-
-        AstronomicalObject updated = new AstronomicalObject(
-                id,
-                payload.name(),
-                payload.type(),
-                payload.diameter(),
-                payload.mass(),
-                payload.escape_velocity(),
-                payload.surface_temperature(),
-                payload.created_by()
-        );
-
-        objects.put(id, updated);
-
-        LocalDateTime now = LocalDateTime.now();
-        objectsCache.put(id, now);
-        objectsCache.remove(ALL_OBJECTS_KEY);
-
-        ctx.header("Last-Modified", now.toString());
-        ctx.status(HttpStatus.OK).json(updated);
+    // Conflict only if another object (different id) has the same name
+    for (AstronomicalObject obj : objects.values()) {
+      if (!obj.id().equals(id) && payload.name().equalsIgnoreCase(obj.name())) {
+        throw new ConflictResponse();
+      }
     }
 
-    public void delete(Context ctx) {
-        Integer id = ctx.pathParamAsClass("id", Integer.class).get();
+    AstronomicalObject updated =
+        new AstronomicalObject(
+            id,
+            payload.name(),
+            payload.type(),
+            payload.diameter(),
+            payload.mass(),
+            payload.escape_velocity(),
+            payload.surface_temperature(),
+            payload.created_by());
 
-        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+    objects.put(id, updated);
 
-        if (lastKnown != null && objectsCache.containsKey(id)
-                && !objectsCache.get(id).equals(lastKnown)) {
-            throw new PreconditionFailedResponse();
-        }
+    LocalDateTime now = LocalDateTime.now();
+    objectsCache.put(id, now);
+    objectsCache.remove(ALL_OBJECTS_KEY);
 
-        AstronomicalObject removed = objects.remove(id);
-        if (removed == null) throw new NotFoundResponse();
+    ctx.header("Last-Modified", now.toString());
+    ctx.status(HttpStatus.OK).json(updated);
+  }
 
-        objectsCache.remove(id);
-        objectsCache.remove(ALL_OBJECTS_KEY);
+  public void delete(Context ctx) {
+    Integer id = ctx.pathParamAsClass("id", Integer.class).get();
 
-        ctx.status(HttpStatus.NO_CONTENT);
+    LocalDateTime lastKnown =
+        ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+
+    if (lastKnown != null
+        && objectsCache.containsKey(id)
+        && !objectsCache.get(id).equals(lastKnown)) {
+      throw new PreconditionFailedResponse();
     }
 
-    private AstronomicalObject validateBody(Context ctx) {
-        return ctx.bodyValidator(AstronomicalObject.class)
-                .check(obj -> obj.name() != null, "Missing object name")
-                .check(obj -> obj.type() != null, "Missing object type")
-                .check(obj -> obj.diameter() != 0, "Missing object diameter")
-                .check(obj -> obj.mass() != 0.d, "Missing object's mass")
-                .check(obj -> obj.escape_velocity() != 0.d, "Missing object's escape velocity")
-                .check(obj -> obj.surface_temperature() != 0.d, "Missing object's surface temperature")
-                .check(obj -> obj.created_by() != null, "Missing object's creator")
-                .get();
-    }
+    AstronomicalObject removed = objects.remove(id);
+    if (removed == null) throw new NotFoundResponse();
+
+    objectsCache.remove(id);
+    objectsCache.remove(ALL_OBJECTS_KEY);
+
+    ctx.status(HttpStatus.NO_CONTENT);
+  }
+
+  private AstronomicalObject validateBody(Context ctx) {
+    return ctx.bodyValidator(AstronomicalObject.class)
+        .check(obj -> obj.name() != null, "Missing object name")
+        .check(obj -> obj.type() != null, "Missing object type")
+        .check(obj -> obj.diameter() != 0, "Missing object diameter")
+        .check(obj -> obj.mass() != 0.d, "Missing object's mass")
+        .check(obj -> obj.escape_velocity() != 0.d, "Missing object's escape velocity")
+        .check(obj -> obj.surface_temperature() != 0.d, "Missing object's surface temperature")
+        .check(obj -> obj.created_by() != null, "Missing object's creator")
+        .get();
+  }
 }
