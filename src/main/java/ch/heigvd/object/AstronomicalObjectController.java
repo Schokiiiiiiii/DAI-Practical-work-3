@@ -3,6 +3,7 @@ package ch.heigvd.object;
 import ch.heigvd.user.User;
 import io.javalin.http.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
@@ -11,12 +12,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AstronomicalObjectController {
 
     private final ConcurrentMap<Integer, AstronomicalObject> objects;
+    private final ConcurrentMap<Integer, LocalDateTime> objectsCache;
     private final ConcurrentMap<String, User> users;
     private final AtomicInteger next_id = new AtomicInteger(1);
+    private static final Integer ALL_OBJECTS_KEY = -1;
 
     public AstronomicalObjectController(ConcurrentMap<Integer, AstronomicalObject> objects,
+                                        ConcurrentMap<Integer, LocalDateTime> objectsCache,
                                         ConcurrentMap<String, User> users) {
         this.objects = objects;
+        this.objectsCache = objectsCache;
         this.users = users;
     }
 
@@ -54,10 +59,22 @@ public class AstronomicalObjectController {
 
         objects.put(stored.id(), stored);
 
+        LocalDateTime now = LocalDateTime.now();
+        objectsCache.put(stored.id(), now);
+        objectsCache.remove(ALL_OBJECTS_KEY);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.status(HttpStatus.CREATED).json(stored);
     }
 
     public void getAll(Context ctx) {
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && objectsCache.containsKey(ALL_OBJECTS_KEY)
+                && objectsCache.get(ALL_OBJECTS_KEY).equals(lastKnown)) {
+            throw new NotModifiedResponse();
+        }
+
         List<AstronomicalObject> result = new ArrayList<>();
 
         Integer diameterGe = optInt(ctx, "diameter_ge");
@@ -92,6 +109,12 @@ public class AstronomicalObjectController {
             result.add(obj);
         }
 
+        LocalDateTime now = objectsCache.containsKey(ALL_OBJECTS_KEY)
+                ? objectsCache.get(ALL_OBJECTS_KEY)
+                : LocalDateTime.now();
+        objectsCache.putIfAbsent(ALL_OBJECTS_KEY, now);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.status(HttpStatus.OK).json(result);
     }
 
@@ -117,13 +140,36 @@ public class AstronomicalObjectController {
 
     public void getOne(Context ctx) {
         Integer id = ctx.pathParamAsClass("id", Integer.class).get();
+
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && objectsCache.containsKey(id)
+                && objectsCache.get(id).equals(lastKnown)) {
+            throw new NotModifiedResponse();
+        }
+
         AstronomicalObject object = objects.get(id);
         if (object == null) throw new NotFoundResponse();
+
+        LocalDateTime now = objectsCache.containsKey(id)
+                ? objectsCache.get(id)
+                : LocalDateTime.now();
+        objectsCache.putIfAbsent(id, now);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.status(HttpStatus.OK).json(object);
     }
 
     public void update(Context ctx) {
         Integer id = ctx.pathParamAsClass("id", Integer.class).get();
+
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && objectsCache.containsKey(id)
+                && !objectsCache.get(id).equals(lastKnown)) {
+            throw new PreconditionFailedResponse();
+        }
+
         AstronomicalObject existing = objects.get(id);
         if (existing == null) throw new NotFoundResponse();
 
@@ -148,13 +194,30 @@ public class AstronomicalObjectController {
         );
 
         objects.put(id, updated);
+
+        LocalDateTime now = LocalDateTime.now();
+        objectsCache.put(id, now);
+        objectsCache.remove(ALL_OBJECTS_KEY);
+
+        ctx.header("Last-Modified", now.toString());
         ctx.status(HttpStatus.OK).json(updated);
     }
 
     public void delete(Context ctx) {
         Integer id = ctx.pathParamAsClass("id", Integer.class).get();
+
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && objectsCache.containsKey(id)
+                && !objectsCache.get(id).equals(lastKnown)) {
+            throw new PreconditionFailedResponse();
+        }
+
         AstronomicalObject removed = objects.remove(id);
         if (removed == null) throw new NotFoundResponse();
+
+        objectsCache.remove(id);
+        objectsCache.remove(ALL_OBJECTS_KEY);
 
         ctx.status(HttpStatus.NO_CONTENT);
     }
