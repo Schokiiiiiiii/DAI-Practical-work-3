@@ -1,0 +1,43 @@
+networks:
+  cosmic_network:
+    name: cosmic_network
+
+services:
+  traefik:
+    image: traefik:${TRAEFIK_IMAGE_VERSION}
+    command:
+      # --log.level=DEBUG
+      # enable traefik dashboard
+      - --api.dashboard=${TRAEFIK_ENABLE_DASHBOARD}
+      # configure docker
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=cosmic_network
+      # define entrypoints for http and https
+      - --entrypoints.http.address=:80
+      - --entrypoints.https.address=:443
+      # redirect http to https
+      - --entrypoints.http.http.redirections.entrypoint.to=https
+      - --entrypoints.http.http.redirections.entrypoint.scheme=https
+      - --entrypoints.http.http.redirections.entrypoint.permanent=true
+      # enable tls for all http traffic
+      - --entrypoints.https.http.tls=true
+      - --entrypoints.https.http.tls.certresolver=letsencrypt
+      # add let's encrypt as certification resolver
+      - --certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+    restart: unless-stopped
+    networks: [cosmic_network]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    labels:
+      # configure traefik resolution
+      - traefik.enable=true
+      - traefik.http.routers.traefik.entrypoints=https
+      - traefik.http.routers.traefik.rule=Host(`${TRAEFIK_FULLY_QUALIFIED_DOMAIN_NAME}`)
+      - traefik.http.routers.traefik.service=api@internal

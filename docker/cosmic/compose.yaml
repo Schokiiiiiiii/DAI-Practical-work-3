@@ -1,0 +1,19 @@
+networks:
+  cosmic_network:
+    external: true
+
+services:
+  cosmic:
+    image: ${IMAGE_NAME}:${TRAEFIK_IMAGE_VERSION}
+    restart: unless-stopped
+    networks: [cosmic_network]
+    labels:
+      # configure traefik resolution
+      - traefik.enable=true
+      - traefik.http.routers.cosmic.entrypoints=https
+      - traefik.http.routers.cosmic.rule=Host(`${COSMIC_FULLY_QUALIFIED_DOMAIN_NAME}`)
+      - traefik.http.routers.cosmic.service=api@internal
+      # configure sticky session with cookie
+      - traefik.http.services.cosmic.loadbalancer.sticky=true
+      - traefik.http.services.cosmic.loadbalancer.sticky.cookie.name=coolest_cookie
+      - traefik.http.services.cosmic.loadbalancer.sticky.cookie.httpOnly=true

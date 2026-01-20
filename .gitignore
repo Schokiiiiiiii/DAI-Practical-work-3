@@ -40,3 +40,6 @@ build/
 
 ### Added manually ###
 .idea
+
+### Let's encrypt files ###
+letsencrypt/
