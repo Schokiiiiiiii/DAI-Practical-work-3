@@ -33,8 +33,8 @@ public class Main {
         ConcurrentMap<Integer, LocalDateTime> objectsCache = new ConcurrentHashMap<>();
 
         // Controllers
-        UserController userController = new UserController(users, usersCache);
-        AstronomicalObjectController objectController = new AstronomicalObjectController(objects, objectsCache);
+        UserController userController = new UserController(users, usersCache, objects);
+        AstronomicalObjectController objectController = new AstronomicalObjectController(objects, objectsCache, users);
 
         // User routes
         app.post("/user", userController::create);

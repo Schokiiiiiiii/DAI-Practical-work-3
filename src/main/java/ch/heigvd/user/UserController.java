@@ -15,10 +15,9 @@ public class UserController {
     private static final String ALL_USERS_KEY = "__ALL_USERS__";
 
     public UserController(ConcurrentMap<String, User> users, ConcurrentMap<String, LocalDateTime> usersCache, ConcurrentMap<Integer, AstronomicalObject> objects) {
-          this.users = users;
-          this.usersCache = usersCache;
-          this.objects = objects;
-      }
+        this.users = users;
+        this.usersCache = usersCache;
+        this.objects = objects;
     }
 
     public void create(Context ctx) {
