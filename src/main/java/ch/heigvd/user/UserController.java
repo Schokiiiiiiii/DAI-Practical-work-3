@@ -6,15 +6,19 @@ import io.javalin.http.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentMap;
 
 public class UserController {
 
     private final ConcurrentMap<String, User> users;
+    private final ConcurrentMap<String, LocalDateTime> usersCache;
     private final ConcurrentMap<Integer, AstronomicalObject> objects;
+    private static final String ALL_USERS_KEY = "__ALL_USERS__";
 
-    public UserController(ConcurrentMap<String, User> users, ConcurrentMap<Integer, AstronomicalObject> objects) {
+    public UserController(ConcurrentMap<String, User> users, ConcurrentMap<String, LocalDateTime> usersCache, ConcurrentMap<Integer, AstronomicalObject> objects) {
         this.users = users;
+        this.usersCache = usersCache;
         this.objects = objects;
     }
 
@@ -40,7 +44,13 @@ public class UserController {
         // add user to database
         users.put(newUser.username(), newUser);
 
+        // cache
+        LocalDateTime now = LocalDateTime.now();
+        usersCache.put(newUser.username(), now);
+        usersCache.remove(ALL_USERS_KEY);
+
         // send status and user back
+        ctx.header("Last-Modified", now.toString());
         ctx.status(HttpStatus.CREATED);
         ctx.json(newUser);
     }
@@ -50,7 +60,21 @@ public class UserController {
         // put all users into a list
         List<User> result = new ArrayList<>(users.values());
 
+        // cache
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && usersCache.containsKey(ALL_USERS_KEY)
+                && usersCache.get(ALL_USERS_KEY).equals(lastKnown)) {
+            throw new NotModifiedResponse();
+        }
+
+        LocalDateTime now = usersCache.containsKey(ALL_USERS_KEY)
+                ? usersCache.get(ALL_USERS_KEY)
+                : LocalDateTime.now();
+        usersCache.putIfAbsent(ALL_USERS_KEY, now);
+
         // return the list of users
+        ctx.header("Last-Modified", now.toString());
         ctx.json(result);
     }
 
@@ -59,7 +83,15 @@ public class UserController {
         // get username from parameter
         String username = ctx.pathParamAsClass("username", String.class).get();
 
-        // retrieve user inside the database
+        // cache
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Modified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && usersCache.containsKey(username)
+                && usersCache.get(username).equals(lastKnown)) {
+            throw new NotModifiedResponse();
+        }
+
+        // retrieve user
         User user = users.get(username);
 
         // check if not found
@@ -67,7 +99,14 @@ public class UserController {
             throw new NotFoundResponse();
         }
 
+        // cache
+        LocalDateTime now = usersCache.containsKey(username)
+                ? usersCache.get(username)
+                : LocalDateTime.now();
+        usersCache.putIfAbsent(username, now);
+
         // send user back
+        ctx.header("Last-Modified", now.toString());
         ctx.json(user);
     }
 
@@ -75,6 +114,14 @@ public class UserController {
 
         // get username from parameter
         String username = ctx.pathParamAsClass("username", String.class).get();
+
+        // cache
+        LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+
+        if (lastKnown != null && usersCache.containsKey(username)
+                && !usersCache.get(username).equals(lastKnown)) {
+            throw new PreconditionFailedResponse();
+        }
 
         // check the user exists in the database
         if (!users.containsKey(username)) {
@@ -86,7 +133,8 @@ public class UserController {
 
         // check the username is unique
         for (User user : users.values()) {
-            if (updateUser.username().equalsIgnoreCase(user.username())) {
+            if (!user.username().equals(username) &&
+                updateUser.username().equalsIgnoreCase(user.username())) {
                 throw new ConflictResponse();
             }
         }
@@ -94,17 +142,31 @@ public class UserController {
         // put user inside the database
         users.put(username, updateUser);
 
-        // return updated user
+        // cache
+        LocalDateTime now = LocalDateTime.now();
+        usersCache.put(username, now);
+        usersCache.remove(ALL_USERS_KEY);
+
+        // return update user
+        ctx.header("Last-Modified", now.toString());
         ctx.json(updateUser);
     }
 
     public void delete(Context ctx) {
 
-        // retrieve username from path parameter
-        String username = ctx.pathParamAsClass("username", String.class).get();
+          // retrieve username from path parameter
+          String username = ctx.pathParamAsClass("username", String.class).get();
 
-        // can't find user
-        if (!users.containsKey(username)) {
+          // cache
+          LocalDateTime lastKnown = ctx.headerAsClass("If-Unmodified-Since", LocalDateTime.class).getOrDefault(null);
+
+          if (lastKnown != null && usersCache.containsKey(username)
+                  && !usersCache.get(username).equals(lastKnown)) {
+              throw new PreconditionFailedResponse();
+          }
+
+          // can't find user
+          if (!users.containsKey(username)) {
             throw new NotFoundResponse();
         }
 
@@ -120,9 +182,10 @@ public class UserController {
             }
         }
 
-
         // remove user from database
         users.remove(username);
+        usersCache.remove(username);
+        usersCache.remove(ALL_USERS_KEY);
 
         // send status
         ctx.status(HttpStatus.NO_CONTENT);
