@@ -164,6 +164,3 @@ This is a server side caching approach that uses HTTP headers.
 - `If-Unmodified-Since`
   - Direction : Request
   - Used in PUT and DELETE requests to prevent lost updates
-
-===========================================================================
-
