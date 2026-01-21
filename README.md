@@ -1,11 +1,13 @@
 # DAI Practical work 3
 
+The API can be accessed here : [cosmic-latte.loseyourip.com](https://cosmic-latte.loseyourip.com)
+
 ## Table of contents
 
 - [General](#general)
 - [Overview](#overview)
 - [Installations and configurations](#installations-and-configurations)
-- [Deployment instructions](#deployment-instructions)
+- [Deployment instructions](#steps-to-deploy-run-and-access)
 - [How to use the application with Curl](#how-to-use-the-application-with-curl)
 - [Caching strategy](#caching-strategy)
 
@@ -53,9 +55,9 @@ Two domains (one domain and subdomain) have been defined for this project:
 - [cosmic-latte.loseyourip.com](https://cosmic-latte.loseyourip.com) - API
 - [traefik.cosmic-latte.loseyourip.com](https://traefik.cosmic-latte.loseyourip.com) - Traefik dashboard
 
-### steps to deploy, run and access
+## steps to deploy, run and access
 
-#### Replace the domain names
+### Replace the domain names
 
 Open the files below and change the required values.
 
@@ -64,7 +66,7 @@ Open the files below and change the required values.
 
 This is required to tell traefik how to solve domain names.
 
-#### Copy files onto the vm
+### Copy files onto the vm
 
 On your local machine you can do similar commands to copy from the repository root onto your VM. The application files and the traefik files need to be in separate directories especially since they have different .env files.
 
@@ -80,7 +82,7 @@ scp docker/traefik/compose.yaml <username>@<vm public ip>:~/cosmicLatteAPI/traef
 scp docker/traefik/.env <username>@<vm public ip>:~/cosmicLatteAPI/traefik/.env
 ```
 
-#### Enable ports on the VM
+### Enable ports on the VM
 
 Check that your VM firewall is accepting http and https connections.
 
@@ -96,7 +98,7 @@ sudo ufw allow 443
 sudo ufw reload
 ```
 
-#### Launch the application
+### Launch the application
 
 Start both containers inside your VM.
 
@@ -114,7 +116,7 @@ docker compose up -d
 ```
 - `-d` - runs container in the background
 
-#### Access the traefik dashboard
+### Access the traefik dashboard
 
 You will see if your setup works. This might take some minutes for certificate to go up especially depending on DNS provide.
 
