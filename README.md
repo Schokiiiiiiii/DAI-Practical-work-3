@@ -1,8 +1,13 @@
 # DAI Practical work 3
 
-## Tableof contents
+## Table of contents
 
-- Content1
+- [General](#general)
+- [Overview](#overview)
+- [Installations and configurations](#installations-and-configurations)
+- [Deployment instructions](#deployment-instructions)
+- [How to use the application with Curl](#how-to-use-the-application-with-curl)
+- [Caching strategy](#caching-strategy)
 
 ## General
 
@@ -12,10 +17,21 @@
 
 ## Overview
 
-The API definition can be found here
+This repository contains the second practical work. The goal is to create a client-server application.
+The application runs the *Nokenet* protocol
+We chose to create a small turn-based CLI game called
+***Nokemon***. The game is composed of a single `.jar` file that can be launched either as a server or a player client.
+
+This repository contains the third practical work. The goal is to define and implement a CRUD API
+application and deploy it to a remote server so that everyone can access it.
+
+The API is named `Cosmic Latte` and allows users to catalog astronomical objects such as planets,
+stars, and black holes.
+
+The API definition can be found here :
 [Link to API](doc/API.md)
 
-## Installations ans configurations
+## Installations and configurations
 
 ### Virtual machine
 
@@ -53,6 +69,6 @@ This is a server side caching approach that uses HTTP headers.
 - `If-Modified-Since`
   - Direction : Request
   - Used in GET requests. Client sends its last known timestamp
-- `Id-Unmodified-Since`
+- `If-Unmodified-Since`
   - Direction : Request
   - Used in PUT and DELETE requests to prevent lost updates
