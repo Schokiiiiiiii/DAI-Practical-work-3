@@ -48,7 +48,7 @@ The DNS recorded name and A record :
 - A record : 4.235.110.154
 
 
-![img.png](img.png)
+![img.png](doc/DNS-record.png)
 
 Two domains (one domain and subdomain) have been defined for this project:
 
