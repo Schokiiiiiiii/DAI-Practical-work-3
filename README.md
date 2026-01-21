@@ -19,17 +19,26 @@ The API definition can be found here
 
 ### Virtual machine
 
+The installation  of the virtual machine was done by following the instruction given 
+in the DAI course [here](https://github.com/heig-vd-dai-course/heig-vd-dai-course/blob/main/11.03-ssh-and-scp/01-course-material/README.md#practical-content)
+
 ### Configure the DNS zone
+
+Our domain name was obtained through the services of [Dynu systems](https://www.dynu.com/) which is a free DNS provider.
+
+There we chose our domain name and provided the A record (VM's IP).
 
 #### List of DNS records
 
 ## Deployment instructions
 
+Run docker
 
+## How to use the application with Curl
 
+A file with curl commands has been created, it also has a test scenario.
 
-
-## How to use the application wiht Curl
+The file can be found here : [curl commands](doc/CURL_TESTS.md)
 
 ## Caching strategy
 
@@ -47,5 +56,3 @@ This is a server side caching approach that uses HTTP headers.
 - `Id-Unmodified-Since`
   - Direction : Request
   - Used in PUT and DELETE requests to prevent lost updates
-
-
