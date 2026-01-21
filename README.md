@@ -17,11 +17,6 @@
 
 ## Overview
 
-This repository contains the second practical work. The goal is to create a client-server application.
-The application runs the *Nokenet* protocol
-We chose to create a small turn-based CLI game called
-***Nokemon***. The game is composed of a single `.jar` file that can be launched either as a server or a player client.
-
 This repository contains the third practical work. The goal is to define and implement a CRUD API
 application and deploy it to a remote server so that everyone can access it.
 
