@@ -326,6 +326,7 @@ curl -i -X DELETE "${BASE_URL}/object/99999"
 
 Run these commands in order to test a complete workflow:
 
+(This scenario was run on a freshly deployed environement)
 ```bash
 # 1. Create users
 echo -e "\n\n========== 1. CREATE USER: alice ==========\n"
