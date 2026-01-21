@@ -34,6 +34,8 @@ JSON object with the following properties:
 - `username`: The username of the user
 - `email`: The email address of the user
 - `date_of_birth`: date of birth of the user
+- `diploma` : Highest education degree
+- `biography` : Description about the person
 
 #### Response
 
@@ -42,6 +44,8 @@ JSON object with the following properties:
 - `username`: The username of the user (unique)
 - `email`: The email address of the user (unique)
 - `date_of_birth`: date of birth of the user
+- `diploma` : Highest education degree
+- `biography` : Description about the person
 
 #### Status codes
 
@@ -68,6 +72,8 @@ JSON array, each has the following properties :
 - `username`: The username of the user
 - `email`: The email address of the user
 - `date_of_birth`: date of birth of the user
+- `diploma` : Highest education degree
+- `biography` : Description about the person
 
 #### Status codes
 
@@ -91,7 +97,9 @@ JSON object with the following properties :
 
 - `username`: The username of the user
 - `email`: The email address of the user
-- `dob`: date of birth of the user
+- `date_of_birth`: date of birth of the user
+- `diploma` : Highest education degree
+- `biography` : Description about the person
 
 #### Status codes
 
@@ -110,8 +118,11 @@ Request path contains the username of the user
 
 Request body contains a JSON object with the following properties
 
+- `username`: The username of the user
 - `email`: The email address of the user
 - `date_of_birth`: date of birth of the user
+- `diploma` : Highest education degree
+- `biography` : Description about the person
 
 #### Response
 
@@ -120,6 +131,8 @@ Response body contains a JSON object with the following properties:
 - `username`: The username of the user
 - `email`: The email address of the user
 - `date_of_birth`: date of birth of the user
+- `diploma` : Highest education degree
+- `biography` : Description about the person
 
 #### Status codes
 
@@ -248,6 +261,7 @@ A JSON file with the following properties:
 #### Status codes
 
 - `200`: (OK) -- Object successfully retrieved
+- `404`: (Not found) -- The specified object id does not exist
 
 ### Update an Astronomical Object
 
