@@ -41,9 +41,104 @@ There we chose our domain name and provided the A record (VM's IP).
 
 #### List of DNS records
 
-## Deployment instructions
+The DNS recorded name and A record :
+- `cosmic-latte.loseyourip.com`
+- A record : 4.235.110.154
 
-Run docker
+
+![img.png](img.png)
+
+Two domains (one domain and subdomain) have been defined for this project:
+
+- [cosmic-latte.loseyourip.com](https://cosmic-latte.loseyourip.com) - API
+- [traefik.cosmic-latte.loseyourip.com](https://traefik.cosmic-latte.loseyourip.com) - Traefik dashboard
+
+### steps to deploy, run and access
+
+#### Replace the domain names
+
+Open the files below and change the required values.
+
+- `docker/cosmic/.env` - COSMIC_FULLY_QUALIFIED_DOMAIN_NAME=<domain_name> (i.e. cosmic-latte.loseyourip.com)
+- `docker/traefik/.env` - TRAEFIK_FULLY_QUALIFIED_DOMAIN_NAME=traefik.<domain_name> (i.e. traefik.cosmic-latte.loseyourip.com)
+
+This is required to tell traefik how to solve domain names.
+
+#### Copy files onto the vm
+
+On your local machine you can do similar commands to copy from the repository root onto your VM. The application files and the traefik files need to be in separate directories especially since they have different .env files.
+
+```bash
+# copy compose and .env for app
+scp docker/cosmic/compose.yaml <username>@<vm public ip>:~/cosmicLatteAPI/app/compose.yaml
+scp docker/cosmic/.env <username>@<vm public ip>:~/cosmicLatteAPI/app/.env
+```
+
+```bash
+# copy compose and .env for traefik
+scp docker/traefik/compose.yaml <username>@<vm public ip>:~/cosmicLatteAPI/traefik/compose.yaml
+scp docker/traefik/.env <username>@<vm public ip>:~/cosmicLatteAPI/traefik/.env
+```
+
+#### Enable ports on the VM
+
+Check that your VM firewall is accepting http and https connections.
+
+```bash
+sudo ufw status
+```
+
+If this tells you `active`, then do the following command.
+
+```bash
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw reload
+```
+
+#### Launch the application
+
+Start both containers inside your VM.
+
+`/cosmicLatteAPI/app/compose.yaml`
+
+```bash
+docker compose up -d
+```
+- `-d` - runs container in the background
+
+`/cosmicLatteAPI/traefik/compose.yaml`
+
+```bash
+docker compose up -d
+```
+- `-d` - runs container in the background
+
+#### Access the traefik dashboard
+
+You will see if your setup works. This might take some minutes for certificate to go up especially depending on DNS provide.
+
+You can access it by going to this address on any web browser.
+
+```
+https://traefik.<domain_name>
+```
+
+Or if it doesn't redirect you to the dash board to the following URL.
+
+```
+https://traefik.<domain_name>/dashboard/
+```
+
+You can also test it with your domain name directly.
+
+```
+https://<domain_name>
+```
+
+Which should return something along the lines of this.
+
+`Endpoint GET / not found`
 
 ## How to use the application with Curl
 
@@ -67,3 +162,6 @@ This is a server side caching approach that uses HTTP headers.
 - `If-Unmodified-Since`
   - Direction : Request
   - Used in PUT and DELETE requests to prevent lost updates
+
+===========================================================================
+
