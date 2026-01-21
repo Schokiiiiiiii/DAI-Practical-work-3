@@ -7,11 +7,8 @@ WORKDIR /app
 # authors
 LABEL authors="Fabien Léger & Samuel Dos Santos"
 
-# expose port for application
-EXPOSE 8080
-
 # copy the jar inside the container
-COPY target/DAI-Practical-work-3-1.0-SNAPSHOT.jar /app/cosmic-latte.jar
+COPY target/DAI-Practical-work-3-1.0-SNAPSHOT.jar /app/cosmic.jar
 
 # run the java app
-ENTRYPOINT ["java", "-jar", "/app/cosmic-latte.jar"]
+ENTRYPOINT ["java", "-jar", "/app/cosmic.jar"]

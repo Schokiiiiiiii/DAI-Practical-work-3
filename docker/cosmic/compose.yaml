@@ -4,7 +4,7 @@ networks:
 
 services:
   cosmic:
-    image: ${IMAGE_NAME}:${IMAGE_VERSION}
+    image: ${IMAGE_NAME}:${TRAEFIK_IMAGE_VERSION}
     restart: unless-stopped
     networks: [cosmic_network]
     labels:
@@ -12,8 +12,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.cosmic.entrypoints=https
       - traefik.http.routers.cosmic.rule=Host(`${COSMIC_FULLY_QUALIFIED_DOMAIN_NAME}`)
-      - traefik.http.routers.cosmic.service=cosmic
-      - traefik.http.services.loadbalancer.server.port=8080
+      - traefik.http.routers.cosmic.service=api@internal
       # configure sticky session with cookie
       - traefik.http.services.cosmic.loadbalancer.sticky=true
       - traefik.http.services.cosmic.loadbalancer.sticky.cookie.name=coolest_cookie
